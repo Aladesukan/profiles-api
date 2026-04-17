@@ -1,67 +1,186 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Profiles API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A RESTful API built with Laravel that creates and manages user profiles by enriching names with demographic data from external APIs.
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+##Overview
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The Profiles API accepts a user's name and automatically generates additional attributes such as:
 
-## Learning Laravel
+* Gender (via Genderize API)
+* Age (via Agify API)
+* Nationality (via Nationalize API)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+It also ensures **idempotency**, meaning duplicate names will not create duplicate records.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Features
 
-### Premium Partners
+* ✅ Create profile with enriched data
+* ✅ Prevent duplicate profiles (idempotency)
+* ✅ Fetch all profiles
+* ✅ Filter profiles by gender
+* ✅ Retrieve a single profile
+* ✅ Delete a profile
+* ✅ External API integration using parallel requests (`Http::pool`)
+* ✅ Error handling for failed API responses (returns `502`)
+* ✅ Input validation (`400`, `422`, `404`)
+* ✅ Automated tests using PHPUnit
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Tech Stack
 
-## Code of Conduct
+* PHP (Laravel Framework)
+* MySQL / SQLite
+* Laravel HTTP Client
+* PHPUnit for testing
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+API Endpoints
 
-## License
+1. Create Profile
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# profiles-api
->>>>>>> c040049ccb5a0cbddb3bd5d09d47559830373b85
-=======
+**POST** `/api/profiles`
 
->>>>>>> e0f6e94dd8a8fb2e9c8c5d030459108f02ceeb7f
+Request:
+
+```json
+{
+  "name": "john"
+}
+
+
+Response (201):
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "uuid",
+    "name": "john",
+    "gender": "male",
+    "age": 30,
+    "country_id": "US"
+  }
+}
+
+
+ 2. Get All Profiles
+
+**GET** `/api/profiles`
+
+
+ 3. Filter by Gender
+
+**GET** `/api/profiles?gender=male`
+
+
+ 4. Get Single Profile
+
+**GET** `/api/profiles/{id}`
+
+
+ 5. Delete Profile
+
+DELETE `/api/profiles/{id}`
+
+Error Handling
+
+| Status Code | Description                     |
+| ----------- | ------------------------------- |
+| 400         | Missing required field (`name`) |
+| 422         | Invalid data type               |
+| 404         | Profile not found               |
+| 502         | External API failure            |
+
+Example error response:
+
+```json
+{
+  "status": "error",
+  "message": "Failed to fetch data from external APIs"
+}
+
+Idempotency
+
+If a profile with the same name already exists:
+
+* The API will **not create a new record**
+* It will return the existing profile instead
+
+
+How It Works
+
+* Uses Laravel’s `Http::pool()` to call:
+
+  * Genderize API
+  * Agify API
+  * Nationalize API
+* All requests run **concurrently** for better performance
+* Results are merged and stored in the database
+
+
+
+Running Tests
+php artisan test
+
+
+Installation
+
+1. Create repository:
+
+2. Install dependencies:
+ OPened laragon app 
+clicked on menu and aceesed quickapp which had laravel as part of it's option
+clicked it then put in my title
+
+
+4. Setup environment:
+Laragon
+
+
+5. Configure database in `.env`
+
+6. Run migrations:
+php artisan migrate
+
+
+7. Start server:
+php artisan serve
+
+
+
+ Notes
+External APIs used:
+- https://genderize.io
+- https://agify.io
+- https://nationalize.io
+- Ensure internet connection for API calls
+
+Author : Fiyinfoluwa Aladesukan
+
+Aspiring Full-Stack Developer
+Passionate about building real-world backend systems
+
+Future Improvements
+
+- Add authentication (JWT / Sanctum)
+- Add caching for API responses
+- Rate limiting
+- Frontend integration
+
+
+Acknowledgements
+
+This project demonstrates:
+
+1 API design principles
+2 Error handling strategies
+3 External API integration
+4 Clean and testable Laravel architecture
+
+---
